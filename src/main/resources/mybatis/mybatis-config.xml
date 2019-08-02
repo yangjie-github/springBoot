@@ -10,7 +10,7 @@
     </settings>
     <!-- 给类配置别名 -->
     <typeAliases>
-        <package name="com.zh.entity"/>
+        <package name="com.yangjie.entity"/>
     </typeAliases>
     <!-- 引入分页插件 必须放在类别名的配置后面 -->
     <!--<plugins>-->

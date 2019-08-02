@@ -330,7 +330,7 @@
 
     整合步骤：
         1）编写实体类，注意放在主程序的所在包下面；Staff
-        2)编写dao接口操作实体类对应的数据表；com.zh.repository.StaffRepository
+        2)编写dao接口操作实体类对应的数据表；com.yangjie.repository.StaffRepository
         3)在yml文件中添加配置jpa
 
 8.springboot启动配置原理；
