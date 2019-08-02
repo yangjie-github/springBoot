@@ -1,0 +1,415 @@
+###springBoot创建
+    1. 创建maven项目，普通的maven项目，简单的jar项目
+    2. 导入springboot依赖，官方文档里面有
+    3. 编写主程序，作用是启动springboot程序。
+    4. 编写相关的controller和service;
+    5. 运行主程序测试；
+    6. 打包，创建一个可执行的jar包；导入spring-boot-maven插件，可使用java -jar执行，内置tomcat,嵌入式的tomcat
+    7. 在springboot的pom文件里，引入的父工程里，存在版本仲裁，在以后导入的依赖，若在父工程的里面没有版本控制，才需要写版本，否则不需要写版本号；
+    8. springboot将所有的功能场景抽取出来，做成一个个的starters（启动器），只需要在项目里面引入这些starter，其相关的场景的所有依赖都会导入进来。
+        要用什么场景就导入相应的启动器；
+    9. 使用快速创建项目，可以选择spring-initializr
+
+
+###springBoot配置文件
+    1. 全局配置
+        application.properties 或者 application.yml 都会被视为全局配置文件，名字是固定的
+        作用： 修改spring-boot的默认配置
+
+        YAML: 是"YAML Ain't a Markup Language"（YAML不是一种置标语言）的递归缩写。
+             在开发的这种语言时，YAML 的意思其实是："Yet Another Markup Language"（是一种标记语言）。
+        标记语言： 以前的配置文件是xxx.xml;
+        yml：是一数据为中心，比json,xml等更适合做配置文件
+            yml配置格式： server:
+                                port: 8081
+    2. 编码问题，在使用application.properties文件给person赋值时候回乱码，idea默认使用色是utf-8，properties使用的是ASC码；
+        设置file-> setting-> file encoding，修改编码为utf-8,并打钩。
+
+
+###参数选择使用那一部分的springBoot配置文件， 使用profile
+    1.使用properties配置:
+        profile是spring对不同环境提供不同配置功能的支持，可以通过激活、指定参数等方式快速切换环境
+        1. 多profile文件形式：
+         -格式：application-{profile}.properties:
+            application-dev.properties、 application-prod.properties
+    2.使用yml文档快模式：
+        server:
+          port: 8095
+        spring:
+          profiles:
+            active: dev
+
+        #使用文档快配置使用哪个配置文件
+        ---
+
+        server:
+          port: 8096
+        spring:
+          profiles: dev
+    3.激活方式：
+        -命令行：--spring.profiles.active=dev   在运行时添加命（配置edit configuration中的program arguments）/或者打成包以后使用java -jar jar包 --参数
+        -配置文件：--spring.profiles.active=dev
+        -jvm参数： --Dspring.profiles.active=dev  在运行时添加命（配置edit configuration中的VM options）
+
+###springboot配置文件加载位置
+    1. spring-boot会扫描以下位置的application.properties或者application.yml文件作为默认配置文件
+        -file:./config/    当前项目的根目录config文件夹里面
+        -file:./
+        -classpath:/config/
+        -classpath:/
+        以上配置文件的优先级是从低到高，所有位置的文件都会被加载（注意是全部会被加载），高优先级覆盖低优先级，这几个文件可以存在互补配置。
+    2. 可以通过spring.config.location来改变默认配置
+        项目打包好有，可以使用命令行参数的配置，来指定配置文件的新位置：这个新配置会和上面的四个配置共同起作用，形成互补配置
+        java -jar jar包 --spring.config.location=D:/application.properties
+
+
+###spring-boot精髓
+    1. spring-boot启动会加载大量的配置类
+    2. 我们看我们需要的功能有没有spring-boot默认写好的自动配置类
+    3. 如果有，我们再来看这个自动配置类中到底配置了那些组件，（只要我们要用的组建有，我们就不需要再来配置了）
+    4. 给容器中自动配置类添加组件的映射，会从properties类中获取某些属性，我们就可以在配置文件中指定这些属性的值
+
+    ctrl + N ，搜索*configuration可以查询自动配置类
+
+
+###confitional注解使用
+
+
+###日志
+    spring-boot底层是spring容器，使用的是JCL(jakarta commons logging);
+    spring-boot选用的是SLF4J(抽象层)和logback(实现层);
+    1.如何在系统中使用SLF4j
+        以后再开发的时候，日志的记录方法的调用，不应该来直接调用日志的实现类，而是调用日志的抽象层里面的方法；
+        SLF4j的实现层不只有logback一个；
+        每一日志的实现框架都有自己的配置文件，石油SLF4j以后，配置文件还是做成日志实现框架的配置文件；
+    2.遗留问题
+        例如a系统用的是slf4j-logback, b系统用的是jboss-logging
+        如果要同统一， 统一使用 slf4j-logback来输出；
+        spring-boot可以对其他框架使用的不同日志框架有个转换包（适配层jar包），最终都是SLF4J(抽象层)和logback(实现层)编程;
+
+        怎样使系统中的所有日志框架都统一到slf4j:
+            1.将系统中的其他日志框架先排除出去；
+            2.使用中间包来替换原有的日志框架；
+            3.导入slf4j的其他实现；
+    3.spring-boot已经帮我们配置好了日志：
+        Logger logger = LoggerFactory.getLogger(DemoApplicationTests.class);
+        日志级别：
+            logger.trace("跟踪");
+            logger.debug("debug");
+            logger.info("输出");
+            logger.warn("警告");
+            logger.error("错误");
+        spring-boot默认输出debug以上级别，不包含debug;
+    4.自定义自己的log配置文件，需要根据spingboot官方的要求，在类路径下防止对应名字的配置文件；
+        例如logback.xml；
+        官方建议防止带spring后缀名的文件,例如logback-spring.xml;这样不会被日志框架直接加载，而是由spingboot加载，
+        可以使用到spingboot的profile标签，可以指定那部分文件在那个环境下生效；
+
+
+###springboot WEB开发
+
+1.使用springboot
+    1)在创建springboot应用时候，选中我们需要的模块；
+    2）Springboot已经将创建项目时候选中的这些场景配置好了，我们只需要在配置文件中指定少量的配置；
+    3）编写业务代码；
+    4)静态资源的映射规则：
+
+        4.1查找*autoconfiguration,找到mvc的配置。查找webjars,点击设置缓存的this可以看到如下配置：
+            @ConfigurationProperties(
+                prefix = "spring.resources",
+                ignoreUnknownFields = false
+            )
+            public class ResourceProperties implements ResourceLoaderAware, InitializingBean {
+
+            spring.resources可以设置和静态资源有关的参数，例如缓存时间
+
+        4.2第一种映射规则：
+            所有/webjars/**, 都去classpath:/META-INF/resources/webjars/找资源;
+            /webjars/**是以jar包的方式引入静态资源，网站www.webjars.org;需要哪个资源，复制过来即可（以maven依赖的方式引入）；
+            例如，引入jquery:
+                <dependency>
+                    <groupId>org.webjars</groupId>
+                    <artifactId>jquery</artifactId>
+                    <version>3.3.1-2</version>
+                </dependency>
+                此时可以访问http://localhost:8090/webjars/jquery/3.3.1-1/jquery.js
+        4.3第二种映射规则；
+            /**, 访问当前项目的任何资源（静态资源的文件夹）
+            classpath:/META-INF/resources/",
+            "classpath:/resources/",
+            "classpath:/static/",
+            "classpath:/public/,
+            /,"当前项目的根路径"
+
+            输入localhost:8080, 若没人处理，则会去上面的路径下找资源。
+        4.4欢迎页的映射：
+            静态文资源文件夹下的所有index.html页面；
+        4.5配置喜欢的图标
+            网站地址的图标，路径在静态资源目录下，**/favicon.ico，任何路径下的/favicon.ico请求路径都在静态资源文件夹下找;
+            需要注意的是如果使用了WebMvcConfigurer（或者相同功能的拦截器）的话，需要加上**.ico以防止拦截器拦截ico文件的访问
+            registry.addInterceptor(authInterceptor()).addPathPatterns("/**")
+            .excludePathPatterns(noInterceptor).excludePathPatterns("/**.html", "/**.ico");
+    5）模板引擎
+        jsp、Velocity、Freemarker、Thymeleaf;
+        思想：渲染动态数据到页面中；
+
+        springboot推荐Thymeleaf：语法更简单，功能更强大；
+        使用步骤：1.引入pom文件依赖；spring-boot-starter-thymeleaf
+                2.Thymeleaf默认规则：
+                    默认前后缀；
+                        前缀：public static final String DEFAULT_PREFIX = "classpath:/templates/";
+                        后缀：public static final String DEFAULT_SUFFIX = ".html";
+                3.导入Thymeleaf的名称空间：<html lang="en" xmlns:th="http://www.thymeleaf.org">
+                4.Thymeleaf语法：
+                    th标签、表达式语法、
+2.springMVC自动配置
+    springboot自动配置好了spingmvc
+    1. 自动配置了视图解析器（根据方法的返回值得到视图对象）
+    2. 可以自己添加视图解析器；
+    3. 自动注册了Converter(类型转换，将参数封装为对象)， Formatter(格式化器，格式化日期);在文件中可以配置日期格式化规则；
+3.如何修改springboot的默认配置：
+    1）springboot在自动配置配置组件时候，先看用户自己有没有配置，如果有，就使用用户配置，如果某些组件有多个，会将用户的配置和默认的配置组合起来。
+    2）扩展springmvc,可以编写一个配置类，例如YangjieSpringMvcConfig，既保留了自动配置，也保留了扩展配置
+4.登录页面的国际化
+    1. 编写国际化配置文件，抽取页面需要显示的国际化消息
+    2. 搜索messageSource自动配置已经配置好了管理国际化组资源文件
+    3. spring.messages我们的配置文件可以直接放在类路径下的messages.properties下。我们放在i18n下；需要修改配置
+    4. 去页面获取国际化的值<!--使用行内表达式获取值[[#(login.rememberMe)]]-->
+    5. 此时默认是根据浏览器语言信息切换国际化
+    6. 国际化Locale(区域信息对象)：LocaleResolver：获取区域信息对象，springboot配置了默认区域信息解析器
+        修改，根据请求头带来的信息，来切换国际化；自己写一个LocaleResolver
+5.Thymeleaf页面抽取未完成
+6.springboot默认错误页面：
+    如果是浏览器，返回的是错误页面，如果是客户端，返回的是json数据；
+    原理： 自动配置参照errormvcautoconfiguration;
+    如何定制响应：
+        一旦系统出现4XX 5XX之后，来到/error请求，BasicErrorController处理；
+        会根据客户端请求的类型(浏览器发请求请求头带accept:text/html)返回页面或者json;
+        1)响应页面：有thyemeleaf模板引擎的情况下，在templates下创建error文件夹；可以使用4xx和5xx模糊匹配，但是以精确为准
+            页面可以获取的数据：
+            timestamp：时间戳
+            status：状态码
+            error：错误的提示
+            exception:异常
+            message:异常消息
+            errors:jsr303数据校验的内容
+            如果没有模板引擎（模板引擎下面找不到这个错误页面），页可以放在静态资源文件夹下，如果都没有，会去找默认配置
+        2）定制json数据：
+7.配置嵌入式servlet容器参数
+    1）通过properties文件修改
+        //通用配置
+        server.xxx=8083
+        //tomcat设置
+        server.tomcat.xxx
+    2)编写一个EmbeddedServletContainerCustomizer：嵌入式的servlet容器的定制器，来修改配置
+        XXX.Customizer进行定制配置
+8.配置嵌入式的servlet的三大组件
+9.使用嵌入式的servlet
+    优点：简单、便携；
+    缺点：默认不支持jsp、优化定制比较复杂；
+    使用外部的tomcat容器：(这样可以访问jsp文件)
+        1.必须创建一个war项目；
+        2.将嵌入式的tomcat配置文件制定为provide；（初始化时候会自动制定）；
+        3.必须编写一个SpringBootServletInitializer的子类，并调用configure方法；（初始化时候会自动创建该方法）
+        4.在初始化项目时候需要选择web项目，并选择生成web.xml文件（可以手动创建目录，也可以配置）；
+        5.然后在在配置文件中添加spring.mvc.view.prefix=/WEB_INF/   spring.mvc.view.suffix=.jsp
+        6.SpringBootServletInitializer作用：
+            原理：（1）如果是jar包，执行主类的main方法，启动ioc容器，创建嵌入式的servlet容器；
+                 （2）如果是war包，先是启动tomcat服务器启动springboot应用，然后启动ioc容器，
+                    servlet3.0规范：定义了一个规则，在应用启动时候，会创建每一个web应用里面每一个jar包里面SpringBootServletInitializer实例；
+                    SpringBootServletInitializer的实现必须放在META-INF/services文件夹下，有一个名为javax.servlet.ServletContainerInitializer的文件，内容就是ServletContainerinitializer的实现类的全类名；
+                    还可以使用@HandlerTypes注解，作用是可以在应用启动的时候加在我们感兴趣的类；
+                    会将@HandlerTypes注解的类都传入到onStartUp方法中，为这些类创建对象。
+                    相当于SpringBootServletInitializer会被创建对象，并执行onstartup，会创建容器；会将spingboot的主程序类传入进来，并启动应用
+
+
+###Docker
+1. 将已经安装好的文件打包成一个镜像；然后在镜像中各种软件做好配置，将镜像发布出去，其他使用者可以直接时候这个镜像。运行中的这个镜像称为容器，容器启动时非常快的；
+    类似windows里面的hgost操作系统，安装好以后什么都有了；
+2.Docker的核心概念：
+    1）docker主机：安装了docker程序的及其（docker直接安装在操作系统上，windows或者linux系统）；
+    2）docker客户端，连接docker主机操作主机；
+    3）docker仓库，用来保存各种打包好的镜像，公共仓库为http://hub.docker.com
+    4）镜像：软件打包好的镜像，放在docker仓库中；
+    5）容器：运行一个镜像后的实例就是一个容器，比如，运行一个mysql镜像以后，就是运行一个mysql容器，就是启动了一个mysql
+    使用docker步骤：
+        安装docker;
+        去docker仓库查找这个软件的镜像；
+        直接使用docker运行这个镜像，就会生成一个容器
+        对容器启动停止；
+    docker logs -f <container id>命令查看es的启动日志:
+3.使用：
+    1)在linux机器上安装docker(使用VMWare或者VirtualBox),如果是虚拟机，则需要设置网络ip(桥接网络，选好网卡)
+        service network restart 重启虚拟机网络；
+        ip addr 查看ip;
+    2)使用虚拟机客户端连接linux系统；（smartty或者SSH或者finalshell(http://www.hostbuf.com/downloads/finalshell_install.exe)）
+    3)安装docker:
+        (当前版本是centos7以上版本， 以下版本安装方式不一样)
+        1.查看内核版本：uname  -r, 在安装docker的时候需要校验虚拟机的内核版本（不能低于3.10）
+        2.如果不是，升级内核
+            一、安装elrepo的yum源
+                升级内核需要使用elrepo的yum源，在安装yum源之前还需要我们导入elrepo的key，如下：
+                rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
+                rpm -Uvh http://www.elrepo.org/elrepo-release-6-6.el6.elrepo.noarch.rpm
+                （或者）rpm -Uvh http://www.elrepo.org/elrepo-release-6-8.el6.elrepo.noarch.rpm
+            二、升级内核
+                在yum的elrepo源中有ml和lt两种内核，其中ml(mainline)为最新版本的内核，lt为长期支持的内核。
+                如果要安装ml内核，使用如下命令：
+                yum --enablerepo=elrepo-kernel -y install kernel-ml
+                如果要安装lt内核，使用如下命令（个人选用）：
+                yum --enablerepo=elrepo-kernel -y install kernel-lt
+                内核升级完毕后，不会立即生效，还需要我们修改grub.conf文件。
+            三、内核升级完毕后，需要我们修改内核的启动顺序，默认启动的顺序应该为1,升级以后内核是往前面插入为0，如下：
+                vim /etc/grub.conf
+                default=0
+            四、重启系统并查看系统内核
+                grub.conf文件修改完毕后，还需要重启系统，如下：
+                shutdown -r now
+        3.安装docker：yum install docker
+        4.启动docker: systemctl start docker(centos7);
+        5.查看版本号：docker -v
+        6.设置开启动：systemctl enable docker
+        7.停止docker: systemctl stop docker
+    4）镜像操作：
+        1.搜索，去docker hub上检索镜像的详细信息，如镜像的TAG;（docker search mysql）
+        2.拉取，docker pull 镜像名：tag, tag是可选的，是软件的版本，默认是latest;(可以使用docker中国，镜像加速docker pull registry.docker-cn.com/library/redis)
+        3.列表，docker images， 查看所有本地镜像；
+        4.删除， docker rmi image-id 删除指定版本的本地镜像；
+    5）容器操作：
+        1.根据镜像启动容器：
+            docker run --name myname -d imagesid; myname自己起一个名字， imagesid,镜像id或者是镜像名;
+            例如： dicker run --name mysql:latest -d kjfdskhfisf;
+        2.docker ps 查看哪些容器在运行；
+        3.此时是不能连接上容器的，需要做端口映射；
+        4.停止容器：docker stop id(容器的id 或者名字)
+        5.docker ps -a 查看所有容器启动的记录；
+        6.根据容器id启动容器（容器停止之后，再次启动的时候）
+        7.删除一个容器（在停止状态下删除）：docker rm 容器id
+        8.启动一个外边可以访问的tomcat:
+            docker run --name myTomcat -p 8080:8080 -d imagesid； -p 主机端口：容器内部端口
+        9.查看容器日志：docker logs container-name/container-id;
+        10.一个镜像可以启动多个容器，每个容器之间互不干扰；
+    6)连接容器：
+        1.docker exec -it sick_hawking bash； sick_hawking容器名称
+        2.连接数据库mysql -uroot -p接着输入密码
+        3.navicat连接不到，报错：Client does not support authentication protocol requested by server; consider upgrading MySQL client
+            alter user 'root'@'localhost' identified with mysql_native_password by '123456';
+            flush privileges;
+        4.依然有错：
+            这是因为Mysql5.6以上的版本修改了Password算法，这里需要更新密码算法，操作步骤如下
+            ALTER user 'root'@'%' IDENTIFIED BY '123456' PASSWORD EXPIRE NEVER;
+            ALTER user 'root'@'%' IDENTIFIED WITH mysql_native_password BY '123456';
+            FLUSH PRIVILEGES;
+4.安装mysql
+    1.拉取镜像
+    2.安装mysql启动会异常退出，错误是在初始化的密码项没有指定；
+    3.正式启动：docker run --name mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=123456  -d mysql(需要加上密码， 和端口映射)
+    4.可以指定启动的配置文件，在官方网站查看；
+5.访问数据
+    1）添加yml配置文件；
+    2）添加pom依赖，默认使用的是tomcat数据源：class org.apache.tomcat.jdbc.pool.DataSource
+    3）自定义数据源
+    4）dataSourceinitlalizer的作用：
+        1.runschemaScripts()运行建表语句，将sql放在指定位置即可
+        2.runDaaScripts()运行插入数据语句
+        规则：将建表语句命名为schema-*.sql , 语句命名为data-*.sql, 并放在类路径下面
+        3.指定自定义运行文件：在yml中使用schema指定；
+    5）自动配置了jdbcTemplate来操作数据库；
+    6)引入自己的数据源druid(安全各方面比较好，使用多)
+6.整合mybatis
+    1)先导入mybatis的pom整合文件
+    2）创建bean
+    3）使用mybatis操作数据库
+    4)使用注解版：详见com.zh.mapper.UserMapper；
+        但是注解是不支持驼峰命名的；可以自定义自己的配置文件:YangJieMybatisConfig
+      使用配置版：详见com.zh.mapper.EmployeeMapper；
+7.整合JPA
+    #springdata 是使用同一的数据访问API
+    #例如关系型数据库的SpringData JPA, 非关系型的SpringData redis Springdata MongoDB
+    #springdata JPA(规范) -> 实现： hibernate , toplink, openJPA
+
+    整合步骤：
+        1）编写实体类，注意放在主程序的所在包下面；Staff
+        2)编写dao接口操作实体类对应的数据表；com.zh.repository.StaffRepository
+        3)在yml文件中添加配置jpa
+
+8.springboot启动配置原理；
+9.自定义starter
+    1）这个场景（starter）需要的依赖是什么？
+    2）如何编写自动配置？
+        @Configuration //这是一个配置类
+        @ConditionalOnWebApplication //在指定条件成立的情况下自动配置类生效
+        @AutoConfigureAfter //指定自动配置类的顺序
+        @Bean // 给容器中添加组件
+        @ConfigurationProperties //结合相关的配置类绑定相关配置
+        @EnableConfigurationProperties //使xxxProperties生效加入到容器中
+
+        自动配置类加载的要求：将需要启动就加载自动配置类，配置再META-INF/spring.factories下
+    3）模式：
+        启动器制作以来导入，专门写一个自动配置模块，启动器依赖自动配置，别人只需要引入启动器；
+        命名格式：mybatis-spring-boot-starter;
+
+自定义banner：https://www.degraeve.com/img2txt.php#sample
+
+###缓存
+1.JSR107
+    Java Caching定义了5个核心接口，分别是CachingProvider, CacheManager, Cache, Entry和Expiry。
+
+    CachingProvider定义了创建、配置、获取、管理和控制多个CacheManager。一个应用可以在运行期访问多个CachingProvider。
+    CacheManager定义了创建、配置、获取、管理和控制多个唯一命名的Cache，这些Cache存在于CacheManager的上下文中。一个CacheManager仅被一个CachingProvider所拥有。
+    Cache是一个类似Map的数据结构并临时存储以Key为索引的值。一个Cache仅被一个CacheManager所拥有。
+    Entry是一个存储在Cache中的key-value对。
+    Expiry每一个存储在Cache中的条目有一个定义的有效期。一旦超过这个时间，条目为过期的状态。一旦过期，条目将不可访问、更新和删除。缓存有效期可以通过ExpiryPolicy设置。
+2.spring缓存抽象
+    快速体验缓存：1.开启给基于注解的缓存@EnableCaching
+                2.标注缓存注解即可
+
+
+
+###RabbiMQ整合
+1.安装镜像，docker pull registry.docker-cn.com/library/rabbitmq:3-management； 带management的带有管理页面
+    启动镜像：docker run -d -p 5672:5672 -p 15672:15672 --name rabbitmq 镜像id； 5672:5672（rabbit端口） 15672:15672（管理界面端口）
+    可以登录15672端口，默认登录账号guest, 密码guest
+2.引入spring-boot-starter-amqp
+3.配置yml文件
+
+
+###Elasticsearch 整合， 底层是Lucene, 提供了Restful API
+1. docker安装镜像：docker pull elasticsearch
+    启动dicker的时候会默认开启2G的堆内存空间， 在这里要设置限制堆内存空间
+    9200elasticsearch端口， 9300有多个elasticsearch时候的内部通信端口
+    docker run -e ES_JAVA_OPTS="-Xms50m -Xmx50m" -d -p 9200:9200 -p 9300:9300 --name elasticsearch 镜像id
+    访问ip:9200可以访问
+2.给es发送请求：
+    1）使用postman工具：
+        url: 47.110.159.8:9200/group/employee/1; group索引名，employee类型名；1 id数据的特定标识
+        发送put请求；
+        数据：
+            json, body选raw， text选applicationjson;
+            {
+                "first_name" : "John",
+                "last_name" :  "Smith",
+                "age" :        25,
+                "about" :      "I love to go rock climbing",
+                "interests": [ "sports", "music" ]
+            }
+        点击发送之后，会存一份数据到es；
+        获取数据：47.110.159.8:9200/group/employee/1， 使用get请求；
+        删除数据：使用delete;
+        检索员工：使用head请求，没有响应体，响应头是200表示成功， 若没有是404；
+        更新： 再次使用put命令
+
+    2）查询所有员工：get请求， 47.110.159.8:9200/group/employee/_search（注意此处发送post请求，并指定查询规则）
+        规则：
+            {
+           	"query" : {
+           		"match" : {
+           			"last_name" : "Smith"
+           		}
+           	}
+           }
+    3）条件查询：name="yangjie"; 47.110.159.8:9200/group/employee/_search?q=name:yangjie
+
+
+
+

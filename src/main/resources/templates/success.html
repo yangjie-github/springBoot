@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="bookmark" th:href="@{/favicon.ico}"/>
+</head>
+<body>
+<div>
+
+    <h1>成功, 欢迎你---[[${session.loginUser}]]</h1>
+    <!--th:text将div的内容设置为${}-->
+    <div th:text="${hello}">这是现实欢迎页面</div>
+
+    <!--不转义-->
+    <div th:utext="${hello}"></div>
+
+    <!--th:each每次遍历都会生成一个h4标签-->
+    <h4 th:text="${user}" th:each="user:${users}"></h4>
+
+    <hr>
+
+    <h4>
+        <span th:each="user:${users}">[[${user}]]</span>
+    </h4>
+
+
+</div>
+</body>
+</html>

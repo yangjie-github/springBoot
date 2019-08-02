@@ -1,0 +1,77 @@
+
+#server:
+#  port: 8095
+#spring:
+#  profiles:
+#    active: dev
+
+#使用文档快配置使用哪个配置文件
+#---
+#
+#server:
+#  port: 8096
+#spring:
+#  profiles: dev
+#---
+#
+#server:
+#  port: 8097
+#spring:
+#  profiles: prod
+
+#通过yml给person赋值
+#person:
+# name: zhangsan
+# age: 18
+# boss: false
+# maps: {k1: v1,k2: v2}
+# lists:
+#  - lisi
+#  - zhaoliu
+# birthday: 2017/12/12
+# dog:
+#  name: 小狗
+#  age: 20
+
+##配置数据库
+#schema是指定建表和语句的位置, 会在应用启动时候创建
+#type指定数据源的类型
+spring:
+  datasource:
+    username: root
+    password: 123456
+    url: jdbc:mysql://47.110.159.8:3306/ceshi
+    driver-class-name: com.mysql.jdbc.Driver
+    type: com.alibaba.druid.pool.DruidDataSource
+    #数据源其他配置,生效：需要配置，写一个配置类：YangJieDruidConfig
+    initialSize: 5
+    minIdle: 5
+    maxActive: 20
+    maxWait: 60000
+    timeBetweenEvictionRunsMillis: 60000
+    minEvictableIdleTimeMillis: 300000
+    validationQuery: SELECT 1 FROM DUAL
+    testWhileIdle: true
+    testOnBorrow: false
+    testOnReturn: false
+    poolPreparedStatements: true
+    #   配置监控统计拦截的filters，去掉后监控界面sql无法统计，'wall'用于防火墙
+    filters: stat,wall
+    maxPoolPreparedStatementPerConnectionSize: 20
+    useGlobalDataSourceStat: true
+    connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=500
+#    schema:
+#      - classpath:department.sql
+  #配置jpa
+  jpa:
+    hibernate:
+      #更新或者更创建
+      ddl-auto: update
+    show-sql: true
+
+
+#使用mybatis配置类时候需要指定mybatis全局配置文件位置和sql文件位置
+mybatis:
+  config-location: classpath:mybatis/mybatis-config.xml
+  mapper-locations: classpath:mybatis/mapper/*.xml
+
